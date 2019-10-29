@@ -3,7 +3,7 @@ import requests
 from urllib.parse import urlparse
 
 
-SUPORTED_HOSTS = (
+SUPPORTED_HOSTS = (
     'bit.ly',
     'tinyurl.com',
     't.co',
@@ -20,7 +20,7 @@ class URLChecker(object):
     def expand_url(self, url):
         """Resolve target of a single shortened URL."""
         parsed_url = urlparse(url)
-        if parsed_url.hostname not in SUPORTED_HOSTS:
+        if parsed_url.hostname not in SUPPORTED_HOSTS:
             return
 
         r = requests.head(url)
