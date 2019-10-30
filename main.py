@@ -41,6 +41,13 @@ class URLChecker(object):
                 yield expanded
 
     def handle_file(self):
+        """Determine which file type handler to use."""
+        if self.file_path.endswith('.eml'):
+            return self.handle_eml()
+        else:
+            return self.handle_txt()
+
+    def handle_txt(self):
         """Handle a simple file containing one URL per line."""
         with open(self.file_path) as file:
             return self.process_list(file.read().splitlines())
@@ -69,26 +76,16 @@ def cli():
     """Parse command line arguments."""
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
-        '-f',
-        '--file',
+        'file_path',
         help='Specify optional file path with URLs to check.'
-    )
-    arg_parser.add_argument(
-        '-e',
-        '--email',
-        help='Specify optional .eml file path to check.'
     )
 
     args = arg_parser.parse_args()
 
-    if args.file:
-        checker = URLChecker(args.file)
-        for i in checker.handle_file():
-            print(i)
-    elif args.email:
-        checker = URLChecker(args.email)
-        for i in checker.handle_eml():
-            print(i)
+    checker = URLChecker(args.file_path)
+
+    for i in checker.handle_file():
+        print(i)
 
 
 if __name__ == '__main__':
