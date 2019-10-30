@@ -37,7 +37,7 @@ class URLChecker(object):
 
     def handle_file(self):
         """Handle a simple file containing one URL per line."""
-        with open(self.file_path, newline='\n') as file:
+        with open(self.file_path) as file:
             return self.process_list(file.read().splitlines())
 
 
