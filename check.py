@@ -4,6 +4,8 @@ import requests
 import email
 import re
 import quopri
+
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
 
@@ -35,10 +37,8 @@ class URLChecker(object):
 
     def process_list(self, url_list):
         """Expand individual URLs from list."""
-        for url in url_list:
-            expanded = self.expand_url(url)
-            if expanded:
-                yield expanded
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            return executor.map(self.expand_url, url_list)
 
     def handle_file(self):
         """Determine which file type handler to use."""
@@ -85,6 +85,7 @@ def cli():
     checker = URLChecker(args.file_path)
 
     for i in checker.handle_file():
+        if i:
         print(i)
 
 
