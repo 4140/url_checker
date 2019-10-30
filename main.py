@@ -1,6 +1,9 @@
 """Check target of shortened urls."""
 import argparse
 import requests
+import email
+import re
+import quopri
 from urllib.parse import urlparse
 
 
@@ -40,6 +43,25 @@ class URLChecker(object):
         with open(self.file_path) as file:
             return self.process_list(file.read().splitlines())
 
+    def handle_eml(self):
+        """Get URLs from eml file's content."""
+        urls = set()
+        with open(self.file_path) as eml:
+            message = email.parser.Parser().parse(eml)
+
+            for payload in message.get_payload():
+                urls.update(self.handle_eml_payload(payload.get_payload()))
+
+        return self.process_list(urls)
+
+    def handle_eml_payload(self, payload):
+        """Decode and extract URLs from payload."""
+        # payload is str, but quopri.decodestring expects bytes object
+        decoded = quopri.decodestring(bytes(payload, 'utf-8'))
+        pattern = re.compile(r'(https?://\S+?)[\"\'\>]')
+
+        return pattern.findall(str(decoded))
+
 
 def cli():
     """Parse command line arguments."""
@@ -49,12 +71,21 @@ def cli():
         '--file',
         help='Specify optional file path with URLs to check.'
     )
+    arg_parser.add_argument(
+        '-e',
+        '--email',
+        help='Specify optional .eml file path to check.'
+    )
 
     args = arg_parser.parse_args()
 
     if args.file:
         checker = URLChecker(args.file)
         for i in checker.handle_file():
+            print(i)
+    elif args.email:
+        checker = URLChecker(args.email)
+        for i in checker.handle_eml():
             print(i)
 
 
