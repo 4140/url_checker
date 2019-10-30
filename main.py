@@ -43,14 +43,14 @@ class URLChecker(object):
 
 def cli():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument(
         '-f',
         '--file',
         help='Specify optional file path with URLs to check.'
     )
 
-    args = parser.parse_args()
+    args = arg_parser.parse_args()
 
     if args.file:
         checker = URLChecker(args.file)
