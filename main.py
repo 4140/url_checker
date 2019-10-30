@@ -36,7 +36,9 @@ class URLChecker(object):
     def process_list(self, url_list):
         """Expand individual URLs from list."""
         for url in url_list:
-            yield self.expand_url(url)
+            expanded = self.expand_url(url)
+            if expanded:
+                yield expanded
 
     def handle_file(self):
         """Handle a simple file containing one URL per line."""
