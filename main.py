@@ -1,4 +1,5 @@
 """Check target of shortened urls."""
+import argparse
 import requests
 from urllib.parse import urlparse
 
@@ -38,3 +39,24 @@ class URLChecker(object):
         """Handle a simple file containing one URL per line."""
         with open(self.file_path, newline='\n') as file:
             return self.process_list(file.read().splitlines())
+
+
+def cli():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-f',
+        '--file',
+        help='Specify optional file path with URLs to check.'
+    )
+
+    args = parser.parse_args()
+
+    if args.file:
+        checker = URLChecker(args.file)
+        for i in checker.handle_file():
+            print(i)
+
+
+if __name__ == '__main__':
+    cli()
