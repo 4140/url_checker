@@ -86,7 +86,7 @@ def cli():
 
     for i in checker.handle_file():
         if i:
-        print(i)
+            print(i)
 
 
 if __name__ == '__main__':
