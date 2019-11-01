@@ -13,7 +13,6 @@ SUPPORTED_HOSTS = (
     'bit.ly',
     'tinyurl.com',
     't.co',
-    'itr-links.stackoverflow.email'
 )
 
 
@@ -26,37 +25,39 @@ class URLChecker(object):
 
         self.queue = asyncio.Queue()
 
-    async def expand_url(self, url, session):
+    async def expand_url(self, url):
         """Resolve target of a single shortened URL."""
         parsed_url = urlparse(url)
         if parsed_url.hostname not in SUPPORTED_HOSTS:
             return
 
-        async with session.head(url) as r:
-            location = (
-                r.headers.get('Location') or r.headers.get('location')
-            )
+        async with aiohttp.ClientSession() as session:
+            async with session.head(url) as r:
+                location = (
+                    r.headers.get('Location') or r.headers.get('location')
+                )
 
-            if location and location != url:
-                return location
+                if location and location != url:
+                    return location
 
     async def process_list(self, url_list):
         """Expand individual URLs from list."""
-        async with aiohttp.ClientSession() as session:
-            for url in url_list:
-                expanded = await self.expand_url(url, session)
-                await self.queue.put(expanded)
+        tasks = [
+            asyncio.create_task(self.expand_url(url))
+            for url in url_list
+        ]
+        return asyncio.gather(*tasks)
 
     async def handle_file(self):
         """Determine which file type handler to use."""
         if self.file_path.endswith('.eml'):
-            await self.handle_eml()
+            results = await self.handle_eml()
         else:
-            await self.handle_txt()
+            results = await self.handle_txt()
 
-        while not self.queue.empty():
-            url = await self.queue.get()
-            print(url)
+        for url in await results:
+            if url:
+                print(url)
 
     async def handle_txt(self):
         """Handle a simple file containing one URL per line."""
@@ -95,8 +96,7 @@ def cli():
 
     checker = URLChecker(args.file_path)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(checker.handle_file())
+    asyncio.run(checker.handle_file())
 
 
 if __name__ == '__main__':
